@@ -17,14 +17,16 @@ var disabledLogger = log.New(io.Discard, "", 0)
 // AppConfig enthält die Konfiguration der Anwendung
 // Es wird empfohlen, diese Konfiguration über Umgebungsvariablen zu setzen
 type AppConfig struct {
-	Version     string
-	Env         Environment
-	LogLevel    LogLevel
-	TraceLogger *log.Logger
-	DebugLogger *log.Logger
-	InfoLogger  *log.Logger
-	WarnLogger  *log.Logger
-	ErrorLogger *log.Logger
+	Version       string
+	Env           Environment
+	DSN           string
+	TenableAPIKey string
+	LogLevel      LogLevel
+	TraceLogger   *log.Logger
+	DebugLogger   *log.Logger
+	InfoLogger    *log.Logger
+	WarnLogger    *log.Logger
+	ErrorLogger   *log.Logger
 }
 
 // NewAppConfig erstellt eine neue Instanz von AppConfig mit der Standardversion

@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/soner3/tenable-import/internal/config"
+	"github.com/soner3/tenable-import/config"
 )
 
 func main() {
@@ -16,6 +16,8 @@ func main() {
 
 	envFlag := flag.String("env", config.DefaultEnv, "Anwendungsumgebung (dev, qa, prod)")
 	logLevelFlag := flag.String("loglevel", config.DefaultLogLevel.String(), "Log-Level (trace, debug, info, warn, error)")
+	flag.String("dsn", cfg.DSN, "Datenbank-Verbindungszeichenfolge (Datasource Name - DSN)")
+	flag.String("tenable-api-key", cfg.TenableAPIKey, "Tenable API-Schlüssel für die Authentifizierung")
 	flag.Parse()
 
 	env, err := config.ParseEnvironment(*envFlag)
