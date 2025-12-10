@@ -13,7 +13,7 @@ const statusCheckInterval = 10 * time.Second
 
 // TenableClient ist der Client für die Tenable API
 type TenableClient struct {
-	App                 *config.Config
+	Config              *config.Config
 	BaseURL             string
 	MaxRetrys           int
 	WaitSeconds         int
@@ -22,9 +22,9 @@ type TenableClient struct {
 }
 
 // NewTenableClient erstellt eine neue Instanz von TenableClient
-func NewTenableClient(appConfig *config.Config) *TenableClient {
+func NewTenableClient(cfg *config.Config) *TenableClient {
 	return &TenableClient{
-		App:                 appConfig,
+		Config:              cfg,
 		BaseURL:             baseURL,
 		MaxRetrys:           maxRetrys,
 		WaitSeconds:         defaultWaitSeconds,

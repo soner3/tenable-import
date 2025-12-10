@@ -27,7 +27,7 @@ func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, e
 		return nil, fmt.Errorf("export UUID ist leer")
 	}
 
-	c.App.DebugLogger.Println("Warte auf Abschluss des Exports...")
+	c.Config.DebugLogger.Println("Warte auf Abschluss des Exports...")
 
 	var statusResp AssetExportStatusResponse
 	statusCheckCount := 0
@@ -35,19 +35,19 @@ func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, e
 		statusCheckCount++
 		_, err = c.CallAPI(http.MethodGet, fmt.Sprintf("/assets/export/%s/status", exportUUID), nil, &statusResp)
 		if err != nil {
-			c.App.ErrorLogger.Printf("Fehler beim Abrufen des Export-Status: %v", err)
+			c.Config.ErrorLogger.Printf("Fehler beim Abrufen des Export-Status: %v", err)
 			return nil, fmt.Errorf("fehler beim Abrufen des Export-Status: %w", err)
 		}
 
-		c.App.DebugLogger.Printf("Status-Check #%d: %s (Chunks: %d)", statusCheckCount, statusResp.Status, len(statusResp.ChunksAvailable))
+		c.Config.DebugLogger.Printf("Status-Check #%d: %s (Chunks: %d)", statusCheckCount, statusResp.Status, len(statusResp.ChunksAvailable))
 
 		switch statusResp.Status {
 		case "FINISHED":
-			c.App.InfoLogger.Printf("Export abgeschlossen - %d Chunks verfügbar", len(statusResp.ChunksAvailable))
+			c.Config.InfoLogger.Printf("Export abgeschlossen - %d Chunks verfügbar", len(statusResp.ChunksAvailable))
 			allAssets := make([]*Asset, 0)
 
 			for i, chunkID := range statusResp.ChunksAvailable {
-				c.App.DebugLogger.Printf("Lade Chunk %d/%d (ID: %d)", i+1, len(statusResp.ChunksAvailable), chunkID)
+				c.Config.DebugLogger.Printf("Lade Chunk %d/%d (ID: %d)", i+1, len(statusResp.ChunksAvailable), chunkID)
 				var chunkAssets []*Asset
 				_, err = c.CallAPI(
 					http.MethodGet,
@@ -56,27 +56,27 @@ func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, e
 					&chunkAssets,
 				)
 				if err != nil {
-					c.App.ErrorLogger.Printf("Fehler beim Herunterladen von Chunk %d: %v", chunkID, err)
+					c.Config.ErrorLogger.Printf("Fehler beim Herunterladen von Chunk %d: %v", chunkID, err)
 					return nil, fmt.Errorf("fehler beim Herunterladen von Chunk %d: %w", chunkID, err)
 				}
 
-				c.App.InfoLogger.Printf("Chunk %d/%d geladen: %d Assets", i+1, len(statusResp.ChunksAvailable), len(chunkAssets))
+				c.Config.InfoLogger.Printf("Chunk %d/%d geladen: %d Assets", i+1, len(statusResp.ChunksAvailable), len(chunkAssets))
 				allAssets = append(allAssets, chunkAssets...)
 			}
 
-			c.App.InfoLogger.Printf("Export erfolgreich: %d Assets geladen", len(allAssets))
+			c.Config.InfoLogger.Printf("Export erfolgreich: %d Assets geladen", len(allAssets))
 			return allAssets, nil
 		case "QUEUED", "PROCESSING":
-			c.App.TraceLogger.Printf("Export läuft noch, warte %v...", c.StatusCheckInterval)
+			c.Config.TraceLogger.Printf("Export läuft noch, warte %v...", c.StatusCheckInterval)
 			time.Sleep(c.StatusCheckInterval)
 		case "CANCELLED":
-			c.App.WarnLogger.Println("Export wurde abgebrochen")
+			c.Config.WarnLogger.Println("Export wurde abgebrochen")
 			return nil, fmt.Errorf("export wurde abgebrochen")
 		case "ERROR":
-			c.App.ErrorLogger.Println("Export ist fehlgeschlagen")
+			c.Config.ErrorLogger.Println("Export ist fehlgeschlagen")
 			return nil, fmt.Errorf("fehler beim Export")
 		default:
-			c.App.ErrorLogger.Printf("Unbekannter Export-Status: %s", statusResp.Status)
+			c.Config.ErrorLogger.Printf("Unbekannter Export-Status: %s", statusResp.Status)
 			return nil, fmt.Errorf("unbekannter Export-Status: %s", statusResp.Status)
 		}
 	}
@@ -84,26 +84,26 @@ func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, e
 }
 
 func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody any) (int, error) {
-	c.App.TraceLogger.Printf("API Call: %s %s", method, endpoint)
+	c.Config.TraceLogger.Printf("API Call: %s %s", method, endpoint)
 
 	b, err := json.Marshal(reqBody)
 	if err != nil {
-		c.App.ErrorLogger.Printf("JSON Marshal Fehler: %v", err)
+		c.Config.ErrorLogger.Printf("JSON Marshal Fehler: %v", err)
 		return 0, err
 	}
 	req, err := http.NewRequest(method, c.BaseURL+endpoint, bytes.NewReader(b))
 	if err != nil {
-		c.App.ErrorLogger.Printf("HTTP Request Fehler: %v", err)
+		c.Config.ErrorLogger.Printf("HTTP Request Fehler: %v", err)
 		return 0, err
 	}
 
 	req.Header.Add("X-ApiKeys", c.ApiKey)
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("content-type", "application/json")
+	req.Header.Add("accept", "Configlication/json")
+	req.Header.Add("content-type", "Configlication/json")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		c.App.ErrorLogger.Printf("HTTP Do Fehler: %v", err)
+		c.Config.ErrorLogger.Printf("HTTP Do Fehler: %v", err)
 		return 0, err
 	}
 
@@ -115,24 +115,24 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 		case http.StatusOK, http.StatusCreated, http.StatusAccepted:
 			fulfilled = true
 		case http.StatusBadRequest:
-			c.App.ErrorLogger.Println("400 Bad Request: Ungültige Parameter")
+			c.Config.ErrorLogger.Println("400 Bad Request: Ungültige Parameter")
 			return http.StatusBadRequest, fmt.Errorf("400 Bad Request: üngültige Parameter oder Formatierung der Anfrage")
 		case http.StatusUnauthorized:
-			c.App.ErrorLogger.Println("401 Unauthorized: Ungültiger API-Schlüssel")
+			c.Config.ErrorLogger.Println("401 Unauthorized: Ungültiger API-Schlüssel")
 			return http.StatusUnauthorized, fmt.Errorf("401 Unauthorized: ungültiger oder fehlender API-Schlüssel")
 		case http.StatusForbidden:
-			c.App.ErrorLogger.Println("403 Forbidden: Unzureichende Berechtigungen")
+			c.Config.ErrorLogger.Println("403 Forbidden: Unzureichende Berechtigungen")
 			return http.StatusForbidden, fmt.Errorf("403 Forbidden: Zugriff verweigert, unzureichende Berechtigungen")
 		case http.StatusNotFound:
-			c.App.WarnLogger.Printf("404 Not Found: %s", endpoint)
+			c.Config.WarnLogger.Printf("404 Not Found: %s", endpoint)
 			return http.StatusNotFound, fmt.Errorf("404 Not Found: Ressource nicht gefunden")
 		case http.StatusConflict:
-			c.App.WarnLogger.Println("409 Conflict: Ressourcen-Konflikt")
+			c.Config.WarnLogger.Println("409 Conflict: Ressourcen-Konflikt")
 			return http.StatusConflict, fmt.Errorf("409 Conflict: Konflikt mit dem aktuellen Zustand der Ressource")
 		case http.StatusTooManyRequests:
 			retryCount += 1
 			if retryCount >= c.MaxRetrys {
-				c.App.ErrorLogger.Printf("Maximale Retry-Anzahl erreicht (%d)", c.MaxRetrys)
+				c.Config.ErrorLogger.Printf("Maximale Retry-Anzahl erreicht (%d)", c.MaxRetrys)
 				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", c.MaxRetrys)
 			}
 			retryAfter := res.Header.Get("retry-after")
@@ -145,17 +145,17 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 			} else {
 				waitSeconds = c.WaitSeconds
 			}
-			c.App.WarnLogger.Printf("429 Too Many Requests - Retry #%d in %ds", retryCount, waitSeconds)
+			c.Config.WarnLogger.Printf("429 Too Many Requests - Retry #%d in %ds", retryCount, waitSeconds)
 			retryCount++
 			if retryCount >= c.MaxRetrys {
 				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", c.MaxRetrys)
 			}
 			time.Sleep(time.Duration(waitSeconds) * time.Second)
 		case http.StatusInternalServerError:
-			c.App.ErrorLogger.Println("500 Internal Server Error")
+			c.Config.ErrorLogger.Println("500 Internal Server Error")
 			return 0, fmt.Errorf("500 Internal Server Error: Serverfehler, bitte später erneut versuchen")
 		default:
-			c.App.ErrorLogger.Printf("Unerwarteter Status Code: %d", res.StatusCode)
+			c.Config.ErrorLogger.Printf("Unerwarteter Status Code: %d", res.StatusCode)
 			return 0, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 		}
 
@@ -164,10 +164,10 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 	defer res.Body.Close()
 
 	if err = json.NewDecoder(res.Body).Decode(resBody); err != nil {
-		c.App.ErrorLogger.Printf("JSON Decode Fehler: %v", err)
+		c.Config.ErrorLogger.Printf("JSON Decode Fehler: %v", err)
 		return 0, err
 	}
 
-	c.App.TraceLogger.Printf("API Call erfolgreich: %s %s", method, endpoint)
+	c.Config.TraceLogger.Printf("API Call erfolgreich: %s %s", method, endpoint)
 	return 0, nil
 }
