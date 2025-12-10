@@ -5,11 +5,18 @@ import (
 	"log"
 )
 
-// Version ist die aktuelle Version der Anwendung
-const Version = "0.0.1"
-
-// DefaultEnv ist die Standardumgebung, wenn keine Umgebungsvariable gesetzt ist
-const DefaultEnv = "dev"
+const (
+	// Version der Anwendung
+	Version = "1.0.0"
+	// DefaultLogLevel ist das Standard-Log-Level
+	DefaultLogLevel = Debug
+	// DefaultEnv ist die Standardumgebung, wenn keine Umgebungsvariable gesetzt ist
+	DefaultEnv = Dev
+	// DefaultAppName ist der Standardname der Anwendung
+	DefaultAppName = ""
+	// DefaultLogFilePath ist der Standardpfad für Log-Dateien
+	DefaultLogFilePath = "./logs/"
+)
 
 // disabledLogger ist ein Logger, der keine Ausgaben macht
 var disabledLogger = log.New(io.Discard, "", 0)
@@ -19,7 +26,9 @@ var disabledLogger = log.New(io.Discard, "", 0)
 type Config struct {
 	Version     string
 	Env         Environment
+	AppName     string
 	LogLevel    LogLevel
+	LogFilePath string
 	TraceLogger *log.Logger
 	DebugLogger *log.Logger
 	InfoLogger  *log.Logger
@@ -27,51 +36,15 @@ type Config struct {
 	ErrorLogger *log.Logger
 }
 
-// NewConfig erstellt eine neue Instanz von Config mit der Standardversion
-func NewConfig() *Config {
-	return &Config{
-		Version: Version,
-	}
-}
-
-// SetupLoggers konfiguriert die Logger basierend auf dem Log-Level
-// Logger, die unter dem konfigurierten Level liegen, werden deaktiviert
-func (cfg *Config) SetupLoggers(traceLogger, debugLogger, infoLogger, warnLogger, errorLogger *log.Logger) {
-	switch cfg.LogLevel {
-	case Trace:
-		// Alle Logger aktiv
-		cfg.TraceLogger = traceLogger
-		cfg.DebugLogger = debugLogger
-		cfg.InfoLogger = infoLogger
-		cfg.WarnLogger = warnLogger
-		cfg.ErrorLogger = errorLogger
-	case Debug:
-		// Debug und höher
-		cfg.TraceLogger = disabledLogger
-		cfg.DebugLogger = debugLogger
-		cfg.InfoLogger = infoLogger
-		cfg.WarnLogger = warnLogger
-		cfg.ErrorLogger = errorLogger
-	case Info:
-		// Info und höher
-		cfg.TraceLogger = disabledLogger
-		cfg.DebugLogger = disabledLogger
-		cfg.InfoLogger = infoLogger
-		cfg.WarnLogger = warnLogger
-		cfg.ErrorLogger = errorLogger
-	case Warn:
-		// Warn und höher
-		cfg.TraceLogger = disabledLogger
-		cfg.DebugLogger = disabledLogger
-		cfg.InfoLogger = disabledLogger
-		cfg.WarnLogger = warnLogger
-		cfg.ErrorLogger = errorLogger
-	case Error:
-		// Nur Error
-		cfg.TraceLogger = disabledLogger
-		cfg.DebugLogger = disabledLogger
-		cfg.InfoLogger = disabledLogger
-		cfg.WarnLogger = disabledLogger
-		cfg.ErrorLogger = errorLogger
+// NewConfig erstellt eine neue Config mit Standardwerten
+// Dabei werden Version, Umgebung und Log-Level gesetzt
+// AppName wird leer gelassen und sollte vom Aufrufer gesetzt werden
+func NewConfig() Config {
+	return Config{
+		Version:     Version,
+		Env:         DefaultEnv,
+		LogLevel:    DefaultLogLevel,
+		AppName:     DefaultAppName,
+		LogFilePath: DefaultLogFilePath,
 	}
 }
