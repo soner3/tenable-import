@@ -14,31 +14,29 @@ const DefaultEnv = "dev"
 // disabledLogger ist ein Logger, der keine Ausgaben macht
 var disabledLogger = log.New(io.Discard, "", 0)
 
-// AppConfig enthält die Konfiguration der Anwendung
+// Config enthält die Konfiguration der Anwendung
 // Es wird empfohlen, diese Konfiguration über Umgebungsvariablen zu setzen
-type AppConfig struct {
-	Version       string
-	Env           Environment
-	DSN           string
-	TenableAPIKey string
-	LogLevel      LogLevel
-	TraceLogger   *log.Logger
-	DebugLogger   *log.Logger
-	InfoLogger    *log.Logger
-	WarnLogger    *log.Logger
-	ErrorLogger   *log.Logger
+type Config struct {
+	Version     string
+	Env         Environment
+	LogLevel    LogLevel
+	TraceLogger *log.Logger
+	DebugLogger *log.Logger
+	InfoLogger  *log.Logger
+	WarnLogger  *log.Logger
+	ErrorLogger *log.Logger
 }
 
-// NewAppConfig erstellt eine neue Instanz von AppConfig mit der Standardversion
-func NewAppConfig() *AppConfig {
-	return &AppConfig{
+// NewConfig erstellt eine neue Instanz von Config mit der Standardversion
+func NewConfig() *Config {
+	return &Config{
 		Version: Version,
 	}
 }
 
 // SetupLoggers konfiguriert die Logger basierend auf dem Log-Level
 // Logger, die unter dem konfigurierten Level liegen, werden deaktiviert
-func (cfg *AppConfig) SetupLoggers(traceLogger, debugLogger, infoLogger, warnLogger, errorLogger *log.Logger) {
+func (cfg *Config) SetupLoggers(traceLogger, debugLogger, infoLogger, warnLogger, errorLogger *log.Logger) {
 	switch cfg.LogLevel {
 	case Trace:
 		// Alle Logger aktiv

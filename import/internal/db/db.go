@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	_ "github.com/microsoft/go-mssqldb"
-	"github.com/soner3/tenable-import/helper"
+	"github.com/soner3/tenable-import/lib/helper"
 )
 
 // CreateSQLServerConnection stellt eine Verbindung zu einer SQL Server-Datenbank her

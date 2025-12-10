@@ -18,7 +18,7 @@ const (
 )
 
 // DefaultLogLevel ist das Standard-Log-Level
-const DefaultLogLevel = Info
+const DefaultLogLevel = Debug
 
 // String-Repräsentationen der Log-Level
 var level = map[LogLevel]string{
@@ -36,7 +36,7 @@ func (l LogLevel) String() string {
 }
 
 // ParseLogLevel parst einen String case-insensitive zu einem LogLevel
-func ParseLogLevel(s string) (LogLevel, error) {
+func (c *Config) ParseLogLevel(s string) (LogLevel, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "trace":
 		return Trace, nil
@@ -49,6 +49,6 @@ func ParseLogLevel(s string) (LogLevel, error) {
 	case "error":
 		return Error, nil
 	default:
-		return Info, fmt.Errorf("ungültiges Log-Level: %q (erlaubt: trace, debug, info, warn, error)", s)
+		return DefaultLogLevel, fmt.Errorf("ungültiges Log-Level: %q (erlaubt: trace, debug, info, warn, error)", s)
 	}
 }

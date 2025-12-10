@@ -8,25 +8,25 @@ import (
 	"os"
 	"time"
 
-	"github.com/soner3/tenable-import/config"
+	"github.com/soner3/tenable-import/import/internal/config"
 )
 
 func main() {
-	cfg := config.NewAppConfig()
+	cfg := &config.AppConfig{}
 
-	envFlag := flag.String("env", config.DefaultEnv, "Anwendungsumgebung (dev, qa, prod)")
-	logLevelFlag := flag.String("loglevel", config.DefaultLogLevel.String(), "Log-Level (trace, debug, info, warn, error)")
+	envFlag := flag.String("env", cfg.Env.String(), "Anwendungsumgebung (dev, qa, prod)")
+	logLevelFlag := flag.String("loglevel", cfg.LogLevel.String(), "Log-Level (trace, debug, info, warn, error)")
 	flag.String("dsn", cfg.DSN, "Datenbank-Verbindungszeichenfolge (Datasource Name - DSN)")
 	flag.String("tenable-api-key", cfg.TenableAPIKey, "Tenable API-Schlüssel für die Authentifizierung")
 	flag.Parse()
 
-	env, err := config.ParseEnvironment(*envFlag)
+	env, err := cfg.ParseEnvironment(*envFlag)
 	if err != nil {
 		log.Fatalf("Fehler beim Parsen der Umgebung: %v", err)
 	}
 	cfg.Env = env
 
-	logLevel, err := config.ParseLogLevel(*logLevelFlag)
+	logLevel, err := cfg.ParseLogLevel(*logLevelFlag)
 	if err != nil {
 		log.Fatalf("Fehler beim Parsen des Log-Levels: %v", err)
 	}

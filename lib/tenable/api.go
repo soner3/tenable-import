@@ -8,11 +8,6 @@ import (
 	"time"
 )
 
-const BaseURL = "https://cloud.tenable.com"
-const MaxRetrys = 5
-const DefaultWaitSeconds = 5
-const StatusCheckInterval = 10 * time.Second
-
 // ExportAssetsV2 startet einen Asset-Export mit chunk_size 5000,
 // wartet bis der Export fertig ist und lädt alle Chunks herunter
 func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, error) {
@@ -72,8 +67,8 @@ func (c *TenableClient) ExportAssetsV2(filters *AssetExportFilters) ([]*Asset, e
 			c.App.InfoLogger.Printf("Export erfolgreich: %d Assets geladen", len(allAssets))
 			return allAssets, nil
 		case "QUEUED", "PROCESSING":
-			c.App.TraceLogger.Printf("Export läuft noch, warte %v...", StatusCheckInterval)
-			time.Sleep(StatusCheckInterval)
+			c.App.TraceLogger.Printf("Export läuft noch, warte %v...", c.StatusCheckInterval)
+			time.Sleep(c.StatusCheckInterval)
 		case "CANCELLED":
 			c.App.WarnLogger.Println("Export wurde abgebrochen")
 			return nil, fmt.Errorf("export wurde abgebrochen")
@@ -96,13 +91,13 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 		c.App.ErrorLogger.Printf("JSON Marshal Fehler: %v", err)
 		return 0, err
 	}
-	req, err := http.NewRequest(method, BaseURL+endpoint, bytes.NewReader(b))
+	req, err := http.NewRequest(method, c.BaseURL+endpoint, bytes.NewReader(b))
 	if err != nil {
 		c.App.ErrorLogger.Printf("HTTP Request Fehler: %v", err)
 		return 0, err
 	}
 
-	req.Header.Add("X-ApiKeys", c.App.TenableAPIKey)
+	req.Header.Add("X-ApiKeys", c.ApiKey)
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 
@@ -136,9 +131,9 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 			return http.StatusConflict, fmt.Errorf("409 Conflict: Konflikt mit dem aktuellen Zustand der Ressource")
 		case http.StatusTooManyRequests:
 			retryCount += 1
-			if retryCount >= MaxRetrys {
-				c.App.ErrorLogger.Printf("Maximale Retry-Anzahl erreicht (%d)", MaxRetrys)
-				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", MaxRetrys)
+			if retryCount >= c.MaxRetrys {
+				c.App.ErrorLogger.Printf("Maximale Retry-Anzahl erreicht (%d)", c.MaxRetrys)
+				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", c.MaxRetrys)
 			}
 			retryAfter := res.Header.Get("retry-after")
 			var waitSeconds int
@@ -148,12 +143,12 @@ func (c *TenableClient) CallAPI(method string, endpoint string, reqBody, resBody
 					return 0, err
 				}
 			} else {
-				waitSeconds = DefaultWaitSeconds
+				waitSeconds = c.WaitSeconds
 			}
 			c.App.WarnLogger.Printf("429 Too Many Requests - Retry #%d in %ds", retryCount, waitSeconds)
 			retryCount++
-			if retryCount >= MaxRetrys {
-				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", MaxRetrys)
+			if retryCount >= c.MaxRetrys {
+				return 0, fmt.Errorf("maximale Anzahl an Wiederholungen erreicht (%d)", c.MaxRetrys)
 			}
 			time.Sleep(time.Duration(waitSeconds) * time.Second)
 		case http.StatusInternalServerError:

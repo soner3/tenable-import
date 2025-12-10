@@ -1,4 +1,4 @@
-module github.com/soner3/tenable-import
+module github.com/soner3/tenable-import/import
 
 go 1.25.0
 

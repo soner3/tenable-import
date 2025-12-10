@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/soner3/tenable-import/config"
-	"github.com/soner3/tenable-import/helper"
-	"github.com/soner3/tenable-import/repository"
-	"github.com/soner3/tenable-import/tenable"
+	"github.com/soner3/tenable-import/import/internal/config"
+	"github.com/soner3/tenable-import/import/internal/repository"
+	"github.com/soner3/tenable-import/lib/helper"
+	"github.com/soner3/tenable-import/lib/tenable"
 )
 
 // TenableServiceImpl implementiert den TenableService interface

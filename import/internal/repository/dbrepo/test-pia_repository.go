@@ -1,6 +1,6 @@
 package dbrepo
 
-import "github.com/soner3/tenable-import/model"
+import "github.com/soner3/tenable-import/import/internal/model"
 
 // GetAllOpenAssets ruft alle Test-PIA-Assets ab
 func (r *testPiaRepository) GetAllOpenAssets() ([]*model.Asset, error) {

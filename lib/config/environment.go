@@ -29,7 +29,7 @@ func (e Environment) String() string {
 }
 
 // ParseEnvironment parst einen String case-insensitive zu einer Environment
-func ParseEnvironment(s string) (Environment, error) {
+func (c *Config) ParseEnvironment(s string) (Environment, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "dev", "development":
 		return Dev, nil

@@ -1,8 +1,8 @@
 package dbrepo
 
 import (
-	"github.com/soner3/tenable-import/config"
-	"github.com/soner3/tenable-import/repository"
+	"github.com/soner3/tenable-import/import/internal/config"
+	"github.com/soner3/tenable-import/import/internal/repository"
 )
 
 // piaRepositoryImpl implementiert das PiaRepository interface
