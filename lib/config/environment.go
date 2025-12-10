@@ -1,9 +1,6 @@
 package config
 
-import (
-	"fmt"
-	"strings"
-)
+import "strings"
 
 // Environment definiert die möglichen Anwendungsumgebungen
 type Environment int
@@ -29,15 +26,18 @@ func (e Environment) String() string {
 }
 
 // ParseEnvironment parst einen String case-insensitive zu einer Environment
-func (c *Config) ParseEnvironment(s string) (Environment, error) {
+func (c *Config) ParseEnvironment(s string) {
+	c.DebugLogger.Printf("Umgebung %q wird geparst", s)
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "dev", "development":
-		return Dev, nil
+		c.Env = Dev
 	case "qa", "test", "testing":
-		return Qa, nil
+		c.Env = Qa
 	case "prod", "production":
-		return Prod, nil
+		c.Env = Prod
 	default:
-		return Dev, fmt.Errorf("ungültige Umgebung: %q (erlaubt: dev, qa, prod)", s)
+		c.WarnLogger.Printf("Ungültige Umgebung: %q, Standardumgebung %q wird verwendet", s, DefaultEnv)
+		c.Env = DefaultEnv
 	}
+	c.InfoLogger.Printf("Umgebung gesetzt auf %q", c.Env)
 }

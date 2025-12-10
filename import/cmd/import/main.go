@@ -19,18 +19,11 @@ func main() {
 	flag.StringVar(&app.AppName, "app-name", app.AppName, "Name der Anwendung")
 	flag.Parse()
 
-	app.SetupLogger()
-	var err error
-	app.Env, err = app.ParseEnvironment(env)
+	app.ParseLogLevel(logLevel)
+	cleanup := app.InitLogger()
+	defer cleanup()
 
-	if err != nil {
-		app.ErrorLogger.Fatalf("Fehler beim Parsen der Umgebung: %v", err)
-	}
-
-	app.LogLevel, err = app.ParseLogLevel(logLevel)
-	if err != nil {
-		app.ErrorLogger.Fatalf("Fehler beim Parsen des Log-Levels: %v", err)
-	}
+	app.ParseEnvironment(env)
 
 	app.InfoLogger.Printf("Anwendung gestartet in Umgebung: %q mit Log-Level: %q", app.Env, app.LogLevel)
 }
